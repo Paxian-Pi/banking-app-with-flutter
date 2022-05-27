@@ -1,6 +1,6 @@
-# banking_app
+# Banking App
 
-A simple banking App
+A simple banking Application
 
 ## Getting Started
 
