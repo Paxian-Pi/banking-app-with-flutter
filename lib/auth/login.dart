@@ -103,18 +103,18 @@ class _LoginState extends State<Login> {
     }
   }
 
-  Future<UserResponseObjectModel> _getCurrentUserIDAndSaveAgain() async {
+  Future<UserResponseObjectModel> _saveCurrentUserIDAndEmail() async {
     _pref = await SharedPreferences.getInstance();
 
-    String getUserAccountUrl =
-        Constants.baseUrl + 'api/user/user-email/${_emailController.text}';
+    String getUserAccountUrl = Constants.baseUrl + 'api/user/user-email/${_emailController.text}';
 
     try {
       final response = await _dio.get(getUserAccountUrl);
-
+      
       _pref = await SharedPreferences.getInstance();
       _pref.setString(Constants.userID, response.data['_id']!);
-
+      _pref.setString(Constants.userEmail, response.data['email']!);
+      
       return UserResponseObjectModel.fromJson(response.data);
     } on DioError catch (e) {
       return e.response!.data;
@@ -123,22 +123,18 @@ class _LoginState extends State<Login> {
 
   Future<UserResponseObjectModel> _createBankAccount(
       CreateBankAccountRequestModel createBankAccount) async {
+
     String createAccountUrl = Constants.baseUrl + 'api/account/create-account';
 
     try {
       _pref = await SharedPreferences.getInstance();
       final accessToken = _pref.getString(Constants.authToken);
-
+      
       _dio.options.headers["Authorization"] = '$accessToken';
-      final response =
-          await _dio.post(createAccountUrl, data: createBankAccount);
-
-      // Get the user Id
-      final userID = response.data['user'];
-
-      // Save user Id to ShearedPreferences
-      _pref = await SharedPreferences.getInstance();
-      _pref.setString(Constants.userID, userID);
+      final response = await _dio.post(createAccountUrl, data: createBankAccount);
+      
+      // Save user Id and email to ShearedPreferences
+      // _saveCurrentUserIDAndEmail();
 
       return UserResponseObjectModel.fromJson(response.data);
     } on DioError catch (e) {
@@ -399,24 +395,33 @@ class _LoginState extends State<Login> {
             }
 
             setState(() => _isLoggedInClicked = true);
-
+            
             _login(LoginRequestModel(email: email, password: password))
-                .then((value) => {
-                      if (value.token.isNotEmpty) {
-                        if(_pref.getString(Constants.userID) == null) {
-                          _createBankAccountDialog(context)
-                        }
-                        else {
-                          _isLoggedInClicked = false,
+                .then((value) async {
+
+                  if (value.token.isNotEmpty) {
+                    _pref = await SharedPreferences.getInstance();
+                   
+                   if(_pref.getString(Constants.userEmail) == _emailController.text.trim()) {
+
+                      _saveCurrentUserIDAndEmail()
+                        .then((value) {
+                      
+                          _isLoggedInClicked = false;
                           Navigator.of(context).pushReplacement(
                             PageTransition(
                               child: const HomeScreen(),
                               type: PageTransitionType.fade,
                             ),
-                          ),
-                        }
-                      }
-                    })
+                          );
+                        });
+                    }
+                    else {
+                      // _pref.remove(Constants.userEmail);
+                      _createBankAccountDialog(context);
+                    }
+                  }
+                })
                 .catchError((error) {
               _showDialog(context);
               setState(() => _isLoggedInClicked = false);
@@ -534,12 +539,14 @@ class _LoginState extends State<Login> {
                 return;
               }
 
-              _createBankAccount(
-                CreateBankAccountRequestModel(
+              _createBankAccount(CreateBankAccountRequestModel(
                     accountNumber: _accountNumberController.text,
                     transactionPIN: _transactionPINinController.text),
               ).then((value) async {
+
+                _saveCurrentUserIDAndEmail();
                 _isLoggedInClicked = false;
+
                 Navigator.of(context).pushReplacement(
                   PageTransition(
                     child: const HomeScreen(),
@@ -547,7 +554,7 @@ class _LoginState extends State<Login> {
                   ),
                 );
               }).catchError((onError) {
-                _getCurrentUserIDAndSaveAgain();
+                _saveCurrentUserIDAndEmail();
 
                 setState(() => _isBankAccountCreated = true);
                 Navigator.of(context).pop();

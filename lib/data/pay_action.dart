@@ -8,10 +8,7 @@ class PayAction {
 }
 
 final List<PayAction> actionData = [
-  PayAction('Transfer', 'Transfer funds to other users', 'assets/icons/zap.svg',
-      'isTransfer'),
-  PayAction('Withdraw', 'Withdraw funds from your wallet',
-      'assets/icons/home.svg', 'isWithdrawal'),
-  PayAction('Deposit', 'Deposit funds to you wallet', 'assets/icons/home.svg',
-      'isDeposit'),
+  PayAction('Transfer', 'Transfer funds to other users', 'assets/icons/zap.svg', 'isTransfer'),
+  PayAction('Withdraw', 'Withdraw funds from your wallet', 'assets/icons/zap.svg', 'isWithdrawal'),
+  PayAction('Deposit', 'Deposit funds to you wallet', 'assets/icons/zap.svg', 'isDeposit'),
 ];

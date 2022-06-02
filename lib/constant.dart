@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-const bgColor = Color(0xffEDEEF1);
+const bgColor = Color.fromARGB(255, 225, 228, 238);
 const greyColor = Color(0xff3a3a3a);
 
 final headingStyle = TextStyle(

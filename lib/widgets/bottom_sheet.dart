@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../animations/fade_animation.dart';
@@ -51,6 +52,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
   final _dio = Dio();
   late SharedPreferences _pref;
 
+  late String _currentUser = '';
   late String _selectedUser = 'Select Recipient';
   late String _recipientAccountNumber;
 
@@ -61,13 +63,13 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
     );
     super.initState();
   }
-
+  
   _navigate() {
     _height = MediaQuery.of(context).size.height;
     _isExpanded = true;
     setState(() {});
   }
-
+  
   Widget _dialogButton(BuildContext context, bool isGetBankName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -210,7 +212,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                 children: [
                   const SizedBox(height: 20),
                   const Text(
-                    'Veegil Finance Users',
+                    'VeeGil Finance Users',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Colors.black,
@@ -236,7 +238,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                             return SizedBox(height: 24.h);
                           },
                           itemBuilder: (BuildContext context, int index) {
-
+                            
                             return GestureDetector(
                               onTap: () {
                                   setState(() {
@@ -265,8 +267,11 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
   }
 
   void _logout(BuildContext context) async {
+
     _pref = await SharedPreferences.getInstance();
     _pref.remove(Constants.authToken);
+    _pref.remove(Constants.userID);
+    // _pref.remove(Constants.userEmail);
 
     Timer(const Duration(milliseconds: 700), () {
       Navigator.of(context).pushReplacement(
@@ -277,16 +282,29 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
       );
     });
   }
-
+  
+  void _showToast(String msg, ToastGravity toastGravity) {
+    Fluttertoast.showToast(
+      msg: msg,
+      toastLength: Toast.LENGTH_LONG,
+      gravity: toastGravity,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.grey[600],
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
+  
   String _selectedBank = 'Select Bank';
   List listItem = [
     'Select Bank',
     'Guarantee Trust Bank',
     'FCMB',
     'Fidelity Bank',
+    'Polaris Bank',
     'Sky Bank',
     'Providus Bank',
-    'Zenith'
+    'Zenith Bank PLC'
   ];
 
   Future _transferFunds(TransferRequestModel transferRequest) async {
@@ -353,34 +371,59 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
     }
   }
 
-  Future _getUsersWithBankAccount() async {
+  Future _getCurrentUser() async {
     _pref = await SharedPreferences.getInstance();
 
-    String transactionHistoryUrl = Constants.baseUrl + 'api/account/all';
+    String currentUserUrl = Constants.baseUrl +
+        'api/user/user-email/${_pref.getString(Constants.userEmail)}';
 
+    try {
+      final currentUserData = await _dio.get(currentUserUrl);
+
+      _currentUser = currentUserData.data['fullname'];
+
+      if (kDebugMode) print(_currentUser);
+
+      return _currentUser;
+    } on DioError catch (e) {
+      return e.message;
+    }
+  }
+
+  Future _getUsersWithBankAccount() async {
+    _pref = await SharedPreferences.getInstance();
+    
+    String transactionHistoryUrl = Constants.baseUrl + 'api/account/all';
+    
     try {
       final userWithAccount = await _dio.get(transactionHistoryUrl);
 
       var userData = userWithAccount.data;
-
+      
       List<_UsersListTile> usersList = [];
       for (var u in userData) {
-        _UsersListTile user = _UsersListTile(fullname: u['user']['fullname'], accountNumber: u['accountNumber']);
 
-        usersList.add(user);
+        // Exclude current user from the list
+        if (u['user']['fullname'] != _currentUser) {
+          _UsersListTile user = _UsersListTile(
+              fullname: u['user']['fullname'],
+              accountNumber: u['accountNumber']);
+
+          usersList.add(user);
+        }
       }
 
       if (kDebugMode) print('${usersList.length} users');
 
       DateTime now = DateTime.now();
-
+      
       return usersList;
     }
     on DioError catch (e) {
-      return e.response!.data;
+      return e.message;
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
@@ -408,13 +451,18 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                 itemCount: dashboardCardData.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {
+                  // HapticFeedback.vibrate();
+                  // SystemSound.play(SystemSoundType.click);
+
                   if (widget.bill.type == 'isTransfer') {
+
                     return Column(
                       children: [
                         const SizedBox(height: 15.0),
                         ElevatedButton(
                           onPressed: () {
                             _showDialog(context);
+                            _getCurrentUser();
                           },
                           onLongPress: () => {},
                           style: ElevatedButton.styleFrom(
@@ -480,6 +528,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                       ],
                     );
                   } else if (widget.bill.type == 'isWithdrawal') {
+
                     return Column(
                       children: [
                         const SizedBox(height: 15.0),
@@ -538,6 +587,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                       ],
                     );
                   } else {
+
                     return Column(
                       children: [
                         const SizedBox(height: 15.0),
@@ -749,7 +799,96 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
         type: PageTransitionType.scaleDownWithFadeIn,
       ),
     );
-    Navigator.pop(context);
+    // Navigator.pop(context);
+  }
+
+  void _paymentActions() {
+
+    if (widget.bill.type == 'isTransfer') {
+
+      if (_selectedUser == 'Select Recipient') {
+        _showToast('Please select a recipient', ToastGravity.CENTER);
+
+        return;
+      }
+
+      if (_transferAmountController.text.trim() == '') {
+        _showToast('You did NOT enter amount', ToastGravity.CENTER);
+
+        return;
+      }
+                  
+      _transferFunds(TransferRequestModel(
+        transferAmount: _transferAmountController.text,
+        recipientAccountNumber: _recipientAccountNumber,
+        recipientName: _selectedUser,
+      )).then((value) {
+        if (value == 'Unauthorized') {
+          _logout(context);
+          return;
+        }
+        _success(context);
+      }).catchError((onError) {
+        Timer(const Duration(milliseconds: 1000), () => _showToast('Something went wrong!', ToastGravity.CENTER));
+        Navigator.of(context).pop();
+      });
+    } 
+    else if (widget.bill.type == 'isWithdrawal') {
+
+      if (_selectedBank == 'Select Bank') {
+        _showToast('Please select a bank', ToastGravity.CENTER);
+
+        return;
+      }
+
+      if (_withdrawAmountController.text.trim() == '') {
+        _showToast('You did NOT enter amount to withdraw', ToastGravity.CENTER);
+
+        return;
+      }
+
+      if (_accountNumberController.text.trim() == '') {
+        _showToast('PLease enter your recieving account number', ToastGravity.CENTER);
+
+        return;
+      }
+      
+      _withdrawFunds(WithdrawalRequestModel(
+        withdrawAmount: _withdrawAmountController.text,
+        recipientBank: _selectedBank,
+        recipientAccountNumber: _accountNumberController.text,
+      )).then((value) {
+        if (value == 'Unauthorized') {
+          _logout(context);
+          return;
+        }
+        _success(context);
+        // if (kDebugMode) print(value);
+      }).catchError((onError) {
+        Timer(const Duration(milliseconds: 1000), () => _showToast('Something went wrong!', ToastGravity.CENTER));
+        Navigator.of(context).pop();
+      });
+    } else {
+
+      if (_depositAmountController.text.trim() == '') {
+        _showToast('You did NOT enter amount to deposit', ToastGravity.CENTER);
+
+        return;
+      }
+                  
+      _depositFunds(DepositRequestModel(depositeAmount: _depositAmountController.text))
+        .then((value) {
+          if (value == 'Unauthorized') {
+            _logout(context);
+            return;
+          }
+          _success(context);
+        })
+        .catchError((onError) {
+          Timer(const Duration(milliseconds: 1000), () => _showToast('Something went wrong!', ToastGravity.CENTER));
+          Navigator.of(context).pop();
+        });
+    }
   }
 
   Widget _authorizePayment() {
@@ -775,44 +914,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                 shape: NeumorphicShape.concave,
               ),
               onPressed: () {
-
-                if(widget.bill.type == 'isTransfer') {
-                  _transferFunds(TransferRequestModel(
-                      transferAmount: _transferAmountController.text,
-                      recipientAccountNumber: _recipientAccountNumber,
-                      recipientName: _selectedUser,
-                  )).then((value) {
-                    if(value == 'Unauthorized') {
-                      _logout(context);
-                      return;
-                    }
-                    _success(context);
-                  });
-                }
-                else if(widget.bill.type == 'isWithdrawal') {
-                  _withdrawFunds(WithdrawalRequestModel(
-                      withdrawAmount: _withdrawAmountController.text,
-                      recipientBank: _selectedBank,
-                      recipientAccountNumber: _accountNumberController.text,
-                  )).then((value) {
-                    if(value == 'Unauthorized') {
-                      _logout(context);
-                      return;
-                    }
-                    _success(context);
-                    // if (kDebugMode) print(value);
-                  });
-                }
-                else {
-                  _depositFunds(DepositRequestModel(depositeAmount: _depositAmountController.text))
-                      .then((value) {
-                        if(value == 'Unauthorized') {
-                          _logout(context);
-                          return;
-                        }
-                        _success(context);
-                  });
-                }
+                _paymentActions();
               },
               child: Center(
                 child: Icon(

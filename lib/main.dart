@@ -11,7 +11,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
+  
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
     //     // home: SuccessScreen(),
     //   ),
     // );
-
+    
     return ScreenUtilInit(
       designSize: const Size(360, 690),
       // minTextAdapt: true,
@@ -45,7 +45,6 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Banking App',
-          // You can use the library anywhere in the app even in theme
 
           builder: (context, widget) {
             ScreenUtil.init(context);
@@ -55,7 +54,7 @@ class MyApp extends StatelessWidget {
             );
           },
           theme: ThemeData(
-            fontFamily: "Outfit",
+            // fontFamily: "Outfit",
             scaffoldBackgroundColor: bgColor,
           ),
           home: const SplashScreen(),

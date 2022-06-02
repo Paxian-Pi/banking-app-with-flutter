@@ -147,7 +147,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
             if (isLogout) {
               _pref = await SharedPreferences.getInstance();
               _pref.remove(Constants.authToken);
-              _pref.remove(Constants.userID);
+              _pref.remove(Constants.userID);            
+              // _pref.remove(Constants.userEmail);
 
               Navigator.of(context).pop();
 
