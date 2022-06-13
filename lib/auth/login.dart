@@ -92,7 +92,7 @@ class _LoginState extends State<Login> {
       if (kDebugMode) print(response.data['token']);
 
       final token = response.data['token'];
-
+      
       // Save authorization token in sheared preferences
       _pref = await SharedPreferences.getInstance();
       _pref.setString(Constants.authToken, token);
@@ -606,7 +606,7 @@ class _LoginState extends State<Login> {
       ],
     );
   }
-
+  
   void _showDialog(BuildContext context) {
     showDialog(
       context: context,

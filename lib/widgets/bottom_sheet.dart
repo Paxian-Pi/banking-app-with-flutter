@@ -43,15 +43,18 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
   bool _isExpanded = false;
 
   final TextEditingController _transferAmountController =
-  TextEditingController();
-  final TextEditingController _withdrawAmountController = TextEditingController();
-  final TextEditingController _accountNumberController = TextEditingController();
+      TextEditingController();
+  final TextEditingController _withdrawAmountController =
+      TextEditingController();
+  final TextEditingController _accountNumberController =
+      TextEditingController();
   final TextEditingController _depositAmountController =
-  TextEditingController();
+      TextEditingController();
 
   final _dio = Dio();
   late SharedPreferences _pref;
 
+  late int _balance = 0;
   late String _currentUser = '';
   late String _selectedUser = 'Select Recipient';
   late String _recipientAccountNumber;
@@ -63,13 +66,13 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
     );
     super.initState();
   }
-  
+
   _navigate() {
     _height = MediaQuery.of(context).size.height;
     _isExpanded = true;
     setState(() {});
   }
-  
+
   Widget _dialogButton(BuildContext context, bool isGetBankName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -79,8 +82,8 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
             HapticFeedback.vibrate();
             SystemSound.play(SystemSoundType.click);
 
-            if(!isGetBankName) Navigator.of(context).pop();
-            if(isGetBankName) Navigator.of(context).pop();
+            if (!isGetBankName) Navigator.of(context).pop();
+            if (isGetBankName) Navigator.of(context).pop();
           },
           child: Container(
             width: MediaQuery.of(context).size.width * 0.5,
@@ -238,18 +241,19 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                             return SizedBox(height: 24.h);
                           },
                           itemBuilder: (BuildContext context, int index) {
-                            
                             return GestureDetector(
                               onTap: () {
-                                  setState(() {
-                                    _selectedUser = snapshot.data[index].fullname;
-                                    _recipientAccountNumber = snapshot.data[index].accountNumber;
-                                  });
-                                  Navigator.of(context).pop();
-                                },
+                                setState(() {
+                                  _selectedUser = snapshot.data[index].fullname;
+                                  _recipientAccountNumber =
+                                      snapshot.data[index].accountNumber;
+                                });
+                                Navigator.of(context).pop();
+                              },
                               child: _UsersListTile(
                                 fullname: snapshot.data[index].fullname,
-                                accountNumber: snapshot.data[index].accountNumber,
+                                accountNumber:
+                                    snapshot.data[index].accountNumber,
                               ),
                             );
                           },
@@ -267,7 +271,6 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
   }
 
   void _logout(BuildContext context) async {
-
     _pref = await SharedPreferences.getInstance();
     _pref.remove(Constants.authToken);
     _pref.remove(Constants.userID);
@@ -282,7 +285,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
       );
     });
   }
-  
+
   void _showToast(String msg, ToastGravity toastGravity) {
     Fluttertoast.showToast(
       msg: msg,
@@ -294,7 +297,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
       fontSize: 16.0,
     );
   }
-  
+
   String _selectedBank = 'Select Bank';
   List listItem = [
     'Select Bank',
@@ -328,6 +331,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
       return e.response!.data;
     }
   }
+
   Future _withdrawFunds(WithdrawalRequestModel withdrawRequest) async {
     _pref = await SharedPreferences.getInstance();
     final userID = _pref.getString(Constants.userID);
@@ -349,6 +353,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
       return e.response!.data;
     }
   }
+
   Future _depositFunds(DepositRequestModel depositRequest) async {
     _pref = await SharedPreferences.getInstance();
     final userID = _pref.getString(Constants.userID);
@@ -380,9 +385,9 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
     try {
       final currentUserData = await _dio.get(currentUserUrl);
 
-      _currentUser = currentUserData.data['fullname'];
+      // if (kDebugMode) print(currentUserData);
 
-      if (kDebugMode) print(_currentUser);
+      _currentUser = currentUserData.data['fullname'];
 
       return _currentUser;
     } on DioError catch (e) {
@@ -392,23 +397,28 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
 
   Future _getUsersWithBankAccount() async {
     _pref = await SharedPreferences.getInstance();
-    
+
     String transactionHistoryUrl = Constants.baseUrl + 'api/account/all';
-    
+
     try {
       final userWithAccount = await _dio.get(transactionHistoryUrl);
 
       var userData = userWithAccount.data;
-      
+
       List<_UsersListTile> usersList = [];
       for (var u in userData) {
+        if (kDebugMode) print(u);
 
+        if (u['user']['fullname'] == _currentUser) {
+          _balance = u['balance'];
+        }
+        
         // Exclude current user from the list
         if (u['user']['fullname'] != _currentUser) {
           _UsersListTile user = _UsersListTile(
               fullname: u['user']['fullname'],
               accountNumber: u['accountNumber']);
-
+          
           usersList.add(user);
         }
       }
@@ -416,14 +426,13 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
       if (kDebugMode) print('${usersList.length} users');
 
       DateTime now = DateTime.now();
-      
+
       return usersList;
-    }
-    on DioError catch (e) {
+    } on DioError catch (e) {
       return e.message;
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
@@ -455,7 +464,6 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                   // SystemSound.play(SystemSoundType.click);
 
                   if (widget.bill.type == 'isTransfer') {
-
                     return Column(
                       children: [
                         const SizedBox(height: 15.0),
@@ -528,7 +536,6 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                       ],
                     );
                   } else if (widget.bill.type == 'isWithdrawal') {
-
                     return Column(
                       children: [
                         const SizedBox(height: 15.0),
@@ -587,7 +594,6 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                       ],
                     );
                   } else {
-
                     return Column(
                       children: [
                         const SizedBox(height: 15.0),
@@ -803,9 +809,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
   }
 
   void _paymentActions() {
-
     if (widget.bill.type == 'isTransfer') {
-
       if (_selectedUser == 'Select Recipient') {
         _showToast('Please select a recipient', ToastGravity.CENTER);
 
@@ -814,10 +818,17 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
 
       if (_transferAmountController.text.trim() == '') {
         _showToast('You did NOT enter amount', ToastGravity.CENTER);
-
+        
         return;
       }
-                  
+
+      // Check if funds are enough
+      if (_balance < 1 ||
+          _balance < int.parse(_transferAmountController.text)) {
+        _showToast('Funds not sufficient!', ToastGravity.CENTER);
+        return;
+      }
+      
       _transferFunds(TransferRequestModel(
         transferAmount: _transferAmountController.text,
         recipientAccountNumber: _recipientAccountNumber,
@@ -829,12 +840,11 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
         }
         _success(context);
       }).catchError((onError) {
-        Timer(const Duration(milliseconds: 1000), () => _showToast('Something went wrong!', ToastGravity.CENTER));
+        Timer(const Duration(milliseconds: 1000),
+            () => _showToast('Something went wrong!', ToastGravity.CENTER));
         Navigator.of(context).pop();
       });
-    } 
-    else if (widget.bill.type == 'isWithdrawal') {
-
+    } else if (widget.bill.type == 'isWithdrawal') {
       if (_selectedBank == 'Select Bank') {
         _showToast('Please select a bank', ToastGravity.CENTER);
 
@@ -848,8 +858,16 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
       }
 
       if (_accountNumberController.text.trim() == '') {
-        _showToast('PLease enter your recieving account number', ToastGravity.CENTER);
+        _showToast(
+            'PLease enter your recieving account number', ToastGravity.CENTER);
 
+        return;
+      }
+      
+      // Check if funds are enough
+      if (_balance < 1 ||
+          _balance < int.parse(_withdrawAmountController.text)) {
+        _showToast('Funds not sufficient!', ToastGravity.CENTER);
         return;
       }
       
@@ -865,29 +883,30 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
         _success(context);
         // if (kDebugMode) print(value);
       }).catchError((onError) {
-        Timer(const Duration(milliseconds: 1000), () => _showToast('Something went wrong!', ToastGravity.CENTER));
+        Timer(const Duration(milliseconds: 1000),
+            () => _showToast('Something went wrong!', ToastGravity.CENTER));
         Navigator.of(context).pop();
       });
     } else {
-
       if (_depositAmountController.text.trim() == '') {
         _showToast('You did NOT enter amount to deposit', ToastGravity.CENTER);
 
         return;
       }
-                  
-      _depositFunds(DepositRequestModel(depositeAmount: _depositAmountController.text))
-        .then((value) {
-          if (value == 'Unauthorized') {
-            _logout(context);
-            return;
-          }
-          _success(context);
-        })
-        .catchError((onError) {
-          Timer(const Duration(milliseconds: 1000), () => _showToast('Something went wrong!', ToastGravity.CENTER));
-          Navigator.of(context).pop();
-        });
+
+      _depositFunds(DepositRequestModel(
+              depositeAmount: _depositAmountController.text))
+          .then((value) {
+        if (value == 'Unauthorized') {
+          _logout(context);
+          return;
+        }
+        _success(context);
+      }).catchError((onError) {
+        Timer(const Duration(milliseconds: 1000),
+            () => _showToast('Something went wrong!', ToastGravity.CENTER));
+        Navigator.of(context).pop();
+      });
     }
   }
 
@@ -940,11 +959,12 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
 }
 
 class _UsersListTile extends StatelessWidget {
-
   final String fullname;
   final String accountNumber;
 
-  const _UsersListTile({Key? key, required this.fullname, required this.accountNumber}) : super(key: key);
+  const _UsersListTile(
+      {Key? key, required this.fullname, required this.accountNumber})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1016,7 +1036,6 @@ class AuthorizePayment extends StatelessWidget {
               ),
               onPressed: () {
                 _navigate(context);
-
               },
               child: Center(
                 child: Icon(
@@ -1039,7 +1058,7 @@ class AuthorizePayment extends StatelessWidget {
       ],
     );
   }
-}   // Not in use!
+} // Not in use!
 
 class TextTile extends StatelessWidget {
   const TextTile({
