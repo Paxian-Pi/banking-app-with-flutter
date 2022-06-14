@@ -556,6 +556,8 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                             setState(() {
                               if (value != 'Select Bank') {
                                 _selectedBank = value.toString();
+                                _getCurrentUser();
+                                _getUsersWithBankAccount();
                               } else {
                                 _selectedBank = 'Select Bank';
                               }
@@ -822,6 +824,10 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
         return;
       }
 
+      print(_balance < int.parse(_transferAmountController.text));
+      print(_balance);
+      print(int.parse(_transferAmountController.text));
+
       // Check if funds are enough
       if (_balance < 1 ||
           _balance < int.parse(_transferAmountController.text)) {
@@ -863,7 +869,11 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
 
         return;
       }
-      
+
+      print(_balance < int.parse(_withdrawAmountController.text));
+      print(_balance);
+      print(int.parse(_withdrawAmountController.text));
+
       // Check if funds are enough
       if (_balance < 1 ||
           _balance < int.parse(_withdrawAmountController.text)) {
