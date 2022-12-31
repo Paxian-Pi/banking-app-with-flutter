@@ -17,15 +17,10 @@ import '../animations/fade_animation.dart';
 import '../animations/slide_animation.dart';
 import '../constant.dart';
 import '../constants.dart';
-import '../data/dashboard_card_data.dart';
 import '../data/pay_action.dart';
-import '../data/transaction_data.dart';
 import '../models/auth_model.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/bottom_sheet.dart';
-import '../widgets/payment_list.dart';
-import '../widgets/card_ui.dart';
-import '../widgets/recent_transactions.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -89,7 +84,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (kDebugMode) print(userID);
 
-    String getUserAccountUrl = Constants.baseUrl + 'api/account/current-user/$userID';
+    String getUserAccountUrl =
+        Constants.baseUrl + 'api/account/current-user/$userID';
 
     try {
       _pref = await SharedPreferences.getInstance();
@@ -97,6 +93,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final response = await _dio.get(getUserAccountUrl);
 
       setState(() {
+        debugPrint(response.toString());
+        // debugPrint(response.data['balance']);
+
         balance = response.data['balance'];
         accountNumber = response.data['accountNumber'];
         fullname = response.data['user']['fullname'];
@@ -113,22 +112,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Future _getTransactionHistory() async {
     _pref = await SharedPreferences.getInstance();
     final userID = _pref.getString(Constants.userID);
-    
-    String transactionHistoryUrl = Constants.baseUrl + 'api/account/transactions/current-user/$userID';
-    
+
+    String transactionHistoryUrl =
+        Constants.baseUrl + 'api/account/transactions/current-user/$userID';
+
     try {
       final response = await _dio.get(transactionHistoryUrl);
 
       var historyData = response.data;
-      
+
       List<_TransactionListTile> histories = [];
       for (var u in historyData) {
         _TransactionListTile history = _TransactionListTile(
-            title: u['transactionType'],
-            subtitle: u['date'],
-            amount: u['transactionAmount'],
+          title: u['transactionType'],
+          subtitle: u['date'],
+          amount: u['transactionAmount'],
         );
-        
+
         histories.add(history);
       }
 
@@ -137,8 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // DateTime now = DateTime.now();
 
       return histories;
-    }
-    on DioError catch (e) {
+    } on DioError catch (e) {
       return e.response!.data;
     }
   }
@@ -164,9 +163,9 @@ class _HomeScreenState extends State<HomeScreen> {
               SizedBox(
                 height: 200.h,
                 child: Hero(
-                      tag: 'dashboard',
-                      child: _dashboardCard(),
-                    ),
+                  tag: 'dashboard',
+                  child: _dashboardCard(),
+                ),
               ),
               SizedBox(height: 16.h),
               SlideAnimation(
@@ -204,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: () {
         HapticFeedback.vibrate();
         SystemSound.play(SystemSoundType.click);
-        
+
         _getCurrentUserBankAccountInfo();
         _getTransactionHistory();
       },
@@ -228,7 +227,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 shape: NeumorphicShape.flat,
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -298,7 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   Widget _paymentActions() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -345,7 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
   Widget _recentTransaction() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -361,12 +361,10 @@ class _HomeScreenState extends State<HomeScreen> {
             future: _getTransactionHistory(),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.data == null) {
-                
                 return Center(
                   child: _spinnar(),
                 );
-              }
-              else {
+              } else {
                 return ListView.separated(
                   shrinkWrap: true,
                   padding: EdgeInsets.zero,
@@ -376,10 +374,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     return SizedBox(height: 24.h);
                   },
                   itemBuilder: (BuildContext context, int index) {
-
+                    if (snapshot.data[index] == null) {
+                      return Container();
+                    }
                     String formattedDate = DateFormat('EEEE dd MMMM, kk:mm')
                         .format(DateTime.parse(snapshot.data[index].subtitle));
-                    
+
                     return _TransactionListTile(
                       title: snapshot.data[index].title,
                       subtitle: formattedDate,
@@ -556,7 +556,9 @@ class _TransactionListTile extends StatelessWidget {
                 ),
                 children: [
                   TextSpan(
-                      text: subtitle, style: const TextStyle(fontSize: 13)),
+                    text: subtitle,
+                    style: const TextStyle(fontSize: 13),
+                  ),
                   // TextSpan(
                   //   text: " " + paidWith,
                   //   style: const TextStyle(

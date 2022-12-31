@@ -17,12 +17,10 @@ import '../animations/slide_animation.dart';
 import '../auth/login.dart';
 import '../constant.dart';
 import '../constants.dart';
-import '../data/pay_action.dart';
 import '../data/dashboard_card_data.dart';
+import '../data/pay_action.dart';
 import '../models/auth_model.dart';
-import '../screens/authorize_payment.dart';
 import '../screens/success_screen.dart';
-import 'card_ui.dart';
 
 class BottomSheetWidget extends StatefulWidget {
   const BottomSheetWidget({Key? key, required this.bill}) : super(key: key);
@@ -215,7 +213,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                 children: [
                   const SizedBox(height: 20),
                   const Text(
-                    'VeeGil Finance Users',
+                    'Finance App Users',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: Colors.black,
@@ -380,7 +378,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
     _pref = await SharedPreferences.getInstance();
 
     String currentUserUrl = Constants.baseUrl +
-        'api/user/user-email/${_pref.getString(Constants.userEmail)}';
+        'api/users/user-email/${_pref.getString(Constants.userEmail)}';
 
     try {
       final currentUserData = await _dio.get(currentUserUrl);
@@ -388,6 +386,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
       // if (kDebugMode) print(currentUserData);
 
       _currentUser = currentUserData.data['fullname'];
+      debugPrint('Current user: $_currentUser');
 
       return _currentUser;
     } on DioError catch (e) {
@@ -411,14 +410,15 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
 
         if (u['user']['fullname'] == _currentUser) {
           _balance = u['balance'];
+          debugPrint('This balance: $_balance');
         }
-        
+
         // Exclude current user from the list
         if (u['user']['fullname'] != _currentUser) {
           _UsersListTile user = _UsersListTile(
               fullname: u['user']['fullname'],
               accountNumber: u['accountNumber']);
-          
+
           usersList.add(user);
         }
       }
@@ -524,8 +524,9 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                                 controller: _transferAmountController,
                                 keyboardType: TextInputType.number,
                                 decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'Enter Amount'),
+                                  border: InputBorder.none,
+                                  hintText: 'Enter Amount',
+                                ),
                               ),
                             ),
                           ),
@@ -752,7 +753,9 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: NeumorphicButton(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 16),
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
                       style: const NeumorphicStyle(
                         color: bgColor,
                         depth: 8,
@@ -820,13 +823,15 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
 
       if (_transferAmountController.text.trim() == '') {
         _showToast('You did NOT enter amount', ToastGravity.CENTER);
-        
+
         return;
       }
 
-      print(_balance < int.parse(_transferAmountController.text));
-      print(_balance);
-      print(int.parse(_transferAmountController.text));
+      // print(_balance < int.parse(_transferAmountController.text));
+      // print(_balance);
+      // print(int.parse(_transferAmountController.text));
+
+      debugPrint('Current balance: $_balance');
 
       // Check if funds are enough
       if (_balance < 1 ||
@@ -834,7 +839,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
         _showToast('Funds not sufficient!', ToastGravity.CENTER);
         return;
       }
-      
+
       _transferFunds(TransferRequestModel(
         transferAmount: _transferAmountController.text,
         recipientAccountNumber: _recipientAccountNumber,
@@ -870,9 +875,9 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
         return;
       }
 
-      print(_balance < int.parse(_withdrawAmountController.text));
-      print(_balance);
-      print(int.parse(_withdrawAmountController.text));
+      // print(_balance < int.parse(_withdrawAmountController.text));
+      // print(_balance);
+      // print(int.parse(_withdrawAmountController.text));
 
       // Check if funds are enough
       if (_balance < 1 ||
@@ -880,7 +885,7 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
         _showToast('Funds not sufficient!', ToastGravity.CENTER);
         return;
       }
-      
+
       _withdrawFunds(WithdrawalRequestModel(
         withdrawAmount: _withdrawAmountController.text,
         recipientBank: _selectedBank,
@@ -972,9 +977,11 @@ class _UsersListTile extends StatelessWidget {
   final String fullname;
   final String accountNumber;
 
-  const _UsersListTile(
-      {Key? key, required this.fullname, required this.accountNumber})
-      : super(key: key);
+  const _UsersListTile({
+    Key? key,
+    required this.fullname,
+    required this.accountNumber,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

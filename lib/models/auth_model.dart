@@ -1,7 +1,4 @@
 // Login model
-import 'package:banking_app/auth/signup.dart';
-
-import 'package:banking_app/auth/signup.dart';
 
 class LoginResponseModel {
   final String token;
@@ -127,10 +124,11 @@ class TransferRequestModel {
   String recipientAccountNumber;
   String recipientName;
 
-  TransferRequestModel(
-      {required this.transferAmount,
-      required this.recipientAccountNumber,
-      required this.recipientName});
+  TransferRequestModel({
+    required this.transferAmount,
+    required this.recipientAccountNumber,
+    required this.recipientName,
+  });
 
   Map<String, dynamic> toJson() {
     final map = {
@@ -148,9 +146,7 @@ class DepositRequestModel {
   DepositRequestModel({required this.depositeAmount});
 
   Map<String, dynamic> toJson() {
-    final map = {
-      'depositeAmount': depositeAmount
-    };
+    final map = {'depositeAmount': depositeAmount};
     return map;
   }
 }

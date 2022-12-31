@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:page_transition/page_transition.dart';
@@ -52,7 +53,7 @@ class _SignupState extends State<Signup> {
   late SharedPreferences _pref;
 
   Future<SignupResponseModel> _signup(SignupRequestModel signupRequest) async {
-    String loginUrl = Constants.baseUrl + 'api/user/register';
+    String loginUrl = Constants.baseUrl + 'api/users/register';
 
     try {
       final response = await _dio.post(loginUrl, data: signupRequest);
@@ -98,15 +99,18 @@ class _SignupState extends State<Signup> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 80),
+                          SizedBox(height: 80.h),
                           _createAccountText(),
                           _nameField(),
+                          SizedBox(height: 30.h),
                           _emailField(),
+                          SizedBox(height: 30.h),
                           _passwordField(),
+                          SizedBox(height: 30.h),
                           _confirmPasswordField(),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20.h),
                           _createAccountButton(),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20.h),
                           _signUpButton(),
                         ],
                       ),
@@ -124,8 +128,8 @@ class _SignupState extends State<Signup> {
   Widget _createAccountText() {
     return Container(
       // color: Colors.red,
-      alignment: Alignment.center,
-      margin: const EdgeInsets.only(bottom: 25),
+      alignment: Alignment.topLeft,
+      margin: EdgeInsets.only(left: 20.sp, bottom: 25.sp),
       child: const Text(
         'Create Account',
         style: TextStyle(
@@ -138,223 +142,148 @@ class _SignupState extends State<Signup> {
   }
 
   Widget _nameField() {
-    return Container(
-      width: double.infinity,
-      height: 70,
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.blue,
-          width: 1,
-        ),
-        // boxShadow: const [
-        //   BoxShadow(
-        //     color: Colors.blue,
-        //     blurRadius: 10,
-        //     offset: Offset(1, 1),
-        //   ),
-        // ],
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(20),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // const Icon(Icons.verified_user),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(left: 10),
-              child: TextFormField(
-                keyboardType: TextInputType.emailAddress,
-                maxLines: 1,
-                decoration: const InputDecoration(
-                  label: Text('Name'),
-                  border: InputBorder.none,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        // const Icon(Icons.verified_user),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.sp, right: 20.sp),
+            child: TextFormField(
+              keyboardType: TextInputType.emailAddress,
+              maxLines: 1,
+              decoration: const InputDecoration(
+                label: Text('Name'),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(15.0),
+                  ),
                 ),
-                onChanged: (value) => setState(() {
-                  name = value.trim();
-                }),
               ),
+              onChanged: (value) => setState(() {
+                name = value.trim();
+              }),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _emailField() {
-    return Container(
-      width: double.infinity,
-      height: 70,
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.blue,
-          width: 1,
-        ),
-        // boxShadow: const [
-        //   BoxShadow(
-        //     color: Colors.blue,
-        //     blurRadius: 10,
-        //     offset: Offset(1, 1),
-        //   ),
-        // ],
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(20),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // const Icon(Icons.verified_user),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(left: 10),
-              child: TextFormField(
-                  keyboardType: TextInputType.emailAddress,
-                  maxLines: 1,
-                  decoration: const InputDecoration(
-                    label: Text('Email'),
-                    border: InputBorder.none,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        // const Icon(Icons.verified_user),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.sp, right: 20.sp),
+            child: TextFormField(
+              keyboardType: TextInputType.emailAddress,
+              maxLines: 1,
+              decoration: const InputDecoration(
+                label: Text('Email'),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(15.0),
                   ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Oops! No email entered";
-                    }
-                    return RegExp(
-                                r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                            .hasMatch(value)
-                        ? null
-                        : "Invalid email";
-                  },
-                  onChanged: (value) => setState(() {
-                        email = value.trim();
-                      })),
+                ),
+              ),
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return "Oops! No email entered";
+                }
+                return RegExp(
+                            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                        .hasMatch(value)
+                    ? null
+                    : "Invalid email";
+              },
+              onChanged: (value) => setState(() {
+                email = value.trim();
+              }),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _passwordField() {
-    return Container(
-      width: double.infinity,
-      height: 70,
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.blue,
-          width: 1,
-        ),
-        // boxShadow: const [
-        //   BoxShadow(
-        //     color: Colors.blue,
-        //     blurRadius: 10,
-        //     offset: Offset(1, 1),
-        //   ),
-        // ],
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(20),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // const Icon(Icons.password_outlined),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(left: 10),
-              child: TextFormField(
-                  keyboardType: TextInputType.visiblePassword,
-                  obscureText: _hideOrShowPassword,
-                  maxLines: 1,
-                  decoration: InputDecoration(
-                    suffixIcon: GestureDetector(
-                      onTap: _toggleVisibility,
-                      child: Icon(
-                        _hideOrShowPassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        size: 25.0,
-                        color: Colors.grey,
-                      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        // const Icon(Icons.password_outlined),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.sp, right: 20.sp),
+            child: TextFormField(
+                keyboardType: TextInputType.visiblePassword,
+                obscureText: _hideOrShowPassword,
+                maxLines: 1,
+                decoration: InputDecoration(
+                  suffixIcon: GestureDetector(
+                    onTap: _toggleVisibility,
+                    child: Icon(
+                      _hideOrShowPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      size: 25.0,
+                      color: Colors.grey,
                     ),
-                    label: const Text('Password'),
-                    border: InputBorder.none,
                   ),
-                  onChanged: (value) => setState(() {
-                        password = value.trim();
-                      })),
-            ),
+                  label: const Text('Password'),
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(15.0),
+                    ),
+                  ),
+                ),
+                onChanged: (value) => setState(() {
+                      password = value.trim();
+                    })),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _confirmPasswordField() {
-    return Container(
-      width: double.infinity,
-      height: 70,
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.blue,
-          width: 1,
-        ),
-        // boxShadow: const [
-        //   BoxShadow(
-        //     color: Colors.blue,
-        //     blurRadius: 10,
-        //     offset: Offset(1, 1),
-        //   ),
-        // ],
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(20),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // const Icon(Icons.password_outlined),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(left: 10),
-              child: TextFormField(
-                  keyboardType: TextInputType.visiblePassword,
-                  obscureText: _hideOrShowPassword,
-                  maxLines: 1,
-                  decoration: InputDecoration(
-                    suffixIcon: GestureDetector(
-                      onTap: _toggleVisibility,
-                      child: Icon(
-                        _hideOrShowPassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        size: 25.0,
-                        color: Colors.grey,
-                      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        // const Icon(Icons.password_outlined),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.sp, right: 20.sp),
+            child: TextFormField(
+                keyboardType: TextInputType.visiblePassword,
+                obscureText: _hideOrShowPassword,
+                maxLines: 1,
+                decoration: InputDecoration(
+                  suffixIcon: GestureDetector(
+                    onTap: _toggleVisibility,
+                    child: Icon(
+                      _hideOrShowPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      size: 25.0,
+                      color: Colors.grey,
                     ),
-                    label: const Text('Confirm Password'),
-                    border: InputBorder.none,
                   ),
-                  onChanged: (value) => setState(() {
-                        confirmPassword = value.trim();
-                      })),
-            ),
+                  label: const Text('Confirm Password'),
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(15.0),
+                    ),
+                  ),
+                ),
+                onChanged: (value) => setState(() {
+                      confirmPassword = value.trim();
+                    })),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

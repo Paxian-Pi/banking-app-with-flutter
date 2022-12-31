@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:animated_widgets/widgets/scale_animated.dart';
 import 'package:dio/dio.dart';
@@ -7,16 +6,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 
 import '../constant.dart';
+import '../constants.dart';
 import '../models/auth_model.dart';
 import '../screens/home_screen.dart';
-import '../constants.dart';
 import 'Signup.dart';
 
 class Login extends StatefulWidget {
@@ -58,7 +57,8 @@ class _LoginState extends State<Login> {
   void _appState() async {
     _pref = await SharedPreferences.getInstance();
 
-    if (_pref.getString(Constants.authToken) != null && _pref.getString(Constants.userID) != null) {
+    if (_pref.getString(Constants.authToken) != null &&
+        _pref.getString(Constants.userID) != null) {
       Navigator.of(context).pushReplacement(
         PageTransition(
           child: const HomeScreen(),
@@ -85,14 +85,14 @@ class _LoginState extends State<Login> {
   }
 
   Future<LoginResponseModel> _login(LoginRequestModel loginRequest) async {
-    String loginUrl = Constants.baseUrl + 'api/user/login';
+    String loginUrl = Constants.baseUrl + 'api/users/login';
 
     try {
       final response = await _dio.post(loginUrl, data: loginRequest);
       if (kDebugMode) print(response.data['token']);
 
       final token = response.data['token'];
-      
+
       // Save authorization token in sheared preferences
       _pref = await SharedPreferences.getInstance();
       _pref.setString(Constants.authToken, token);
@@ -106,15 +106,16 @@ class _LoginState extends State<Login> {
   Future<UserResponseObjectModel> _saveCurrentUserIDAndEmail() async {
     _pref = await SharedPreferences.getInstance();
 
-    String getUserAccountUrl = Constants.baseUrl + 'api/user/user-email/${_emailController.text}';
+    String getUserAccountUrl =
+        Constants.baseUrl + 'api/users/user-email/${_emailController.text}';
 
     try {
       final response = await _dio.get(getUserAccountUrl);
-      
+
       _pref = await SharedPreferences.getInstance();
       _pref.setString(Constants.userID, response.data['_id']!);
       _pref.setString(Constants.userEmail, response.data['email']!);
-      
+
       return UserResponseObjectModel.fromJson(response.data);
     } on DioError catch (e) {
       return e.response!.data;
@@ -123,16 +124,16 @@ class _LoginState extends State<Login> {
 
   Future<UserResponseObjectModel> _createBankAccount(
       CreateBankAccountRequestModel createBankAccount) async {
-
     String createAccountUrl = Constants.baseUrl + 'api/account/create-account';
 
     try {
       _pref = await SharedPreferences.getInstance();
       final accessToken = _pref.getString(Constants.authToken);
-      
+
       _dio.options.headers["Authorization"] = '$accessToken';
-      final response = await _dio.post(createAccountUrl, data: createBankAccount);
-      
+      final response =
+          await _dio.post(createAccountUrl, data: createBankAccount);
+
       // Save user Id and email to ShearedPreferences
       // _saveCurrentUserIDAndEmail();
 
@@ -204,14 +205,15 @@ class _LoginState extends State<Login> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 100),
+                          SizedBox(height: 100.h),
                           _loginText(),
                           _emailField(),
+                          SizedBox(height: 20.h),
                           _passwordField(),
                           _forgotPassword(),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20.h),
                           _loginButton(),
-                          const SizedBox(height: 40),
+                          SizedBox(height: 40.h),
                           _signUpButton(),
                         ],
                       ),
@@ -231,28 +233,30 @@ class _LoginState extends State<Login> {
       children: [
         Container(
           // color: Colors.red,
-          margin: const EdgeInsets.only(bottom: 25),
+          margin: EdgeInsets.only(bottom: 25.sp),
           child: const Text(
-            'Welcome To VeeGil Finance',
+            'Welcome To\nThe Finance App',
             textAlign: TextAlign.center,
             style: TextStyle(
-                fontSize: 30,
-                color: Colors.black87,
-                letterSpacing: 2,
-                fontFamily: "Lobster"),
+              fontSize: 25,
+              color: Colors.black87,
+              letterSpacing: 2,
+              fontFamily: "Lobster",
+            ),
           ),
         ),
         Container(
           // color: Colors.red,
-          alignment: Alignment.center,
-          margin: const EdgeInsets.only(bottom: 25),
+          alignment: Alignment.topLeft,
+          margin: EdgeInsets.only(left: 20.sp, bottom: 25.sp),
           child: const Text(
             'Sign In',
             style: TextStyle(
-                fontSize: 25,
-                color: Colors.black87,
-                letterSpacing: 2,
-                fontFamily: "Lobster"),
+              fontSize: 25,
+              color: Colors.black87,
+              letterSpacing: 2,
+              fontFamily: "Lobster",
+            ),
           ),
         ),
       ],
@@ -260,112 +264,74 @@ class _LoginState extends State<Login> {
   }
 
   Widget _emailField() {
-    return Container(
-      width: double.infinity,
-      height: 70,
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.blue,
-          width: 1,
-        ),
-        // boxShadow: const [
-        //   BoxShadow(
-        //     color: Colors.blue,
-        //     blurRadius: 5,
-        //     offset: Offset(1, 1),
-        //   ),
-        // ],
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(20),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // const Icon(Icons.verified_user),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(left: 10),
-              child: TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                maxLines: 1,
-                decoration: const InputDecoration(
-                  label: Text('Email'),
-                  border: InputBorder.none,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        // const Icon(Icons.verified_user),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.sp, right: 20.sp),
+            child: TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              maxLines: 1,
+              decoration: const InputDecoration(
+                label: Text('Email'),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(15.0),
+                  ),
                 ),
-                onChanged: (value) => setState(() {
-                  email = value.trim();
-                }),
-                // validator: (value) => value!.length < 3 ? 'Empty fields...' : null,
               ),
+              onChanged: (value) => setState(() {
+                email = value.trim();
+              }),
+              // validator: (value) => value!.length < 3 ? 'Empty fields...' : null,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _passwordField() {
-    return Container(
-      width: double.infinity,
-      height: 70,
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.blue,
-          width: 1,
-        ),
-        // boxShadow: const [
-        //   BoxShadow(
-        //     color: Colors.blue,
-        //     blurRadius: 10,
-        //     offset: Offset(1, 1),
-        //   ),
-        // ],
-        color: Colors.white,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(20),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // const Icon(Icons.password_outlined),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(left: 10),
-              child: TextFormField(
-                controller: _passwordController,
-                keyboardType: TextInputType.visiblePassword,
-                obscureText: _hideOrShowPassword,
-                maxLines: 1,
-                decoration: InputDecoration(
-                  suffixIcon: GestureDetector(
-                    onTap: _toggleVisibility,
-                    child: Icon(
-                      _hideOrShowPassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      size: 25.0,
-                      color: Colors.grey,
-                    ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        // const Icon(Icons.password_outlined),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.sp, right: 20.sp),
+            child: TextFormField(
+              controller: _passwordController,
+              keyboardType: TextInputType.visiblePassword,
+              obscureText: _hideOrShowPassword,
+              maxLines: 1,
+              decoration: InputDecoration(
+                suffixIcon: GestureDetector(
+                  onTap: _toggleVisibility,
+                  child: Icon(
+                    _hideOrShowPassword
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                    size: 25.0,
+                    color: Colors.grey,
                   ),
-                  label: const Text('Password'),
-                  border: InputBorder.none,
                 ),
-                onChanged: (value) => setState(() {
-                  password = value.trim();
-                }),
+                label: const Text('Password'),
+                border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(15.0),
+                  ),
+                ),
               ),
+              onChanged: (value) => setState(() {
+                password = value.trim();
+              }),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -395,34 +361,29 @@ class _LoginState extends State<Login> {
             }
 
             setState(() => _isLoggedInClicked = true);
-            
+
             _login(LoginRequestModel(email: email, password: password))
                 .then((value) async {
+              if (value.token.isNotEmpty) {
+                _pref = await SharedPreferences.getInstance();
 
-                  if (value.token.isNotEmpty) {
-                    _pref = await SharedPreferences.getInstance();
-                   
-                   if(_pref.getString(Constants.userEmail) == _emailController.text.trim()) {
-
-                      _saveCurrentUserIDAndEmail()
-                        .then((value) {
-                      
-                          _isLoggedInClicked = false;
-                          Navigator.of(context).pushReplacement(
-                            PageTransition(
-                              child: const HomeScreen(),
-                              type: PageTransitionType.fade,
-                            ),
-                          );
-                        });
-                    }
-                    else {
-                      // _pref.remove(Constants.userEmail);
-                      _createBankAccountDialog(context);
-                    }
-                  }
-                })
-                .catchError((error) {
+                if (_pref.getString(Constants.userEmail) ==
+                    _emailController.text.trim()) {
+                  _saveCurrentUserIDAndEmail().then((value) {
+                    _isLoggedInClicked = false;
+                    Navigator.of(context).pushReplacement(
+                      PageTransition(
+                        child: const HomeScreen(),
+                        type: PageTransitionType.fade,
+                      ),
+                    );
+                  });
+                } else {
+                  // _pref.remove(Constants.userEmail);
+                  _createBankAccountDialog(context);
+                }
+              }
+            }).catchError((error) {
               _showDialog(context);
               setState(() => _isLoggedInClicked = false);
             });
@@ -461,9 +422,11 @@ class _LoginState extends State<Login> {
         ),
         const SizedBox(width: 30.0),
         ElevatedButton(
-          onPressed: () {},
-          onLongPress: () =>
-              _showToast('Not yet implemented!', ToastGravity.BOTTOM),
+          onPressed: () =>
+              _showToast('Long-press for more info!', ToastGravity.CENTER),
+          onLongPress: () => _showToast(
+              'You would be able to sign with your fingerprint in the future...',
+              ToastGravity.BOTTOM),
           style: ElevatedButton.styleFrom(
             elevation: 3,
             padding: EdgeInsets.zero,
@@ -539,11 +502,11 @@ class _LoginState extends State<Login> {
                 return;
               }
 
-              _createBankAccount(CreateBankAccountRequestModel(
+              _createBankAccount(
+                CreateBankAccountRequestModel(
                     accountNumber: _accountNumberController.text,
                     transactionPIN: _transactionPINinController.text),
               ).then((value) async {
-
                 _saveCurrentUserIDAndEmail();
                 _isLoggedInClicked = false;
 
@@ -606,7 +569,7 @@ class _LoginState extends State<Login> {
       ],
     );
   }
-  
+
   void _showDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -715,8 +678,13 @@ class _LoginState extends State<Login> {
                             controller: _accountNumberController,
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                hintText: 'Your phone/no will be your acc/no'),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(15.0),
+                                ),
+                              ),
+                              hintText: 'Phone Number/Account number',
+                            ),
                           ),
                         ),
                       ),
@@ -734,7 +702,11 @@ class _LoginState extends State<Login> {
                             controller: _transactionPINinController,
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
-                                border: InputBorder.none,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(15.0),
+                                  ),
+                                ),
                                 hintText: 'Enter your transaction PIN'),
                           ),
                         ),
